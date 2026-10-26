@@ -23,7 +23,7 @@ public enum MusicGenre implements Genre {
      *
      * @param label text shown to the user for this genre
      */
-    MusicGenre(String label) {
+    private MusicGenre(String label) {
         this.label = label;
     }
 

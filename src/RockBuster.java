@@ -271,10 +271,25 @@ public class RockBuster {
     }
 
     /**
-     * 
+     * Shows the price filter screen: asks for a number, which is the price, reads the input value
+     * and shows the products with a price less or equal to the given value.
+     *
+     * @param catalog the list  with all the products
+     * @param sc      the scanner used to read the user input
      */
     private static void showPriceFilteredMenu(List<Product> catalog, Scanner sc) {
         
+        System.out.println("\n===== FILTRAR POR PRECIO =====");
+        System.out.print("Selecciona el precio maximo que sera mostrado o escribe 0 para cancelar: ");
+        double targetPrice = readDouble(sc);
+
+        
+        if(targetPrice == 0)
+            return;
+
+        
+        List<Product> result = filterByMaxPrice(targetPrice, catalog);
+        showFilteredResults(orderLexicographically(result), sc);
     }
 
     /**
@@ -304,17 +319,59 @@ public class RockBuster {
     }
 
     /**
-     * 
+     * creates a new list containing only the products from a certain genre
+     *
+     * @param genre The selected genre for products
+     * @param products The list of products to filter
+     * @return the list containing only the filtered products
      */
     private static List<Product> filterByGenre(Genre genre, List<Product> products) {
+        HashSet<Product> filtered = new HashSet<>();
 
+
+        for(Product product: products){
+
+            if(product instanceof Saga){
+                
+                List<Product> children = filterByGenre(genre, product.items());
+                
+                for(Product child: children){
+                    filtered.add(child);
+                }
+            } else if(product.genre() == genre)
+                filtered.add(product);
+            
+        }
+
+        return new ArrayList<Product>(filtered);
     }
 
     /**
-     * 
+     * creates a new list containing only the products priced at most at the given price
+     *
+     * @param maxPrice the target price, no product will cost more than this
+     * @param products the list of products to filter
+     * @return the list containing only the filtered products
      */
     private static List<Product> filterByMaxPrice(double maxPrice, List<Product> products) {
-       
+       HashSet<Product> filtered = new HashSet<>();
+
+
+       for(Product product: products){
+
+           if(product instanceof Saga){
+
+               List<Product> children = filterByMaxPrice(maxPrice, product.items());
+               
+               for(Product child: children){
+                   filtered.add(child);
+               }
+           } else if(product.price() <= maxPrice)
+               filtered.add(product);
+           
+       }
+
+       return new ArrayList<Product>(filtered);
     }
 
     /**
@@ -347,10 +404,16 @@ public class RockBuster {
     }
 
     /**
-     * 
+     * Creates and returns a list containing the same elements but sorted
+     *
+     * @param products the list to copy and sort
+     * @return a sorted copy of the original
      */
     private static List<Product> orderLexicographically(List<Product> products) {
-        // me dio hueva hacerlo jeje
+        ArrayList<Product> newOrder = new ArrayList<>(products);
+
+        newOrder.sort((a, b) -> a.name().compareTo(b.name()));
+        return newOrder;
     }
 
     /**
@@ -378,9 +441,28 @@ public class RockBuster {
     }
 
     /**
-     * 
+     * Read a double from the input, asking again until it is a valid, non negative number
+     *
+     * @param sc the scanner used to read the user input
+     * @return the valid double value typed by the user
      */
     private static double readDouble(Scanner sc) {
 
+        double value = 0;
+        boolean validAnswer = false;
+        
+        while (!validAnswer) {
+            String line = sc.nextLine().trim();
+            try {
+                value = Double.parseDouble(line);
+
+                if(value >= 0)
+                    validAnswer = true;
+            } catch (NumberFormatException e) {
+                System.out.print("Opcion invalida. Escribe un numero valido para continuar: ");
+            }
+        }
+
+        return value;
     }
 }
